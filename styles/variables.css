@@ -1,0 +1,12 @@
+:root {
+  --color-bg: #1e1f24;
+  --color-accent: #48b1a2;
+  --color-text: #ffffff;
+  --color-surface: #262830;
+  --color-border: rgba(255, 255, 255, 0.14);
+  --shadow-soft: 0 12px 28px rgba(0, 0, 0, 0.28);
+  --shadow-hard: 0 20px 44px rgba(0, 0, 0, 0.36);
+  --font-body: var(--font-inter), "Segoe UI", sans-serif;
+  --font-heading: var(--font-poppins), "Segoe UI", sans-serif;
+  --section-space: clamp(4rem, 8vw, 7rem);
+}

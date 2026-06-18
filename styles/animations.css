@@ -1,0 +1,101 @@
+[data-reveal]:not(.premium-card) {
+  --reveal-delay: 0ms;
+  opacity: 0;
+  filter: blur(8px);
+  transform: translateY(24px) scale(0.985);
+  transition:
+    opacity 700ms ease var(--reveal-delay),
+    transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1) var(--reveal-delay),
+    filter 700ms ease var(--reveal-delay);
+}
+
+[data-reveal]:not(.premium-card).is-visible {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateY(0) scale(1);
+}
+
+.premium-card[data-reveal] {
+  --reveal-delay: 0ms;
+  opacity: 0;
+  filter: blur(8px);
+  transform: perspective(1000px) rotateX(var(--rotate-x)) rotateY(var(--rotate-y))
+    translateY(24px) scale(0.985);
+  transition:
+    opacity 700ms ease var(--reveal-delay),
+    transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1) var(--reveal-delay),
+    filter 700ms ease var(--reveal-delay);
+}
+
+.premium-card[data-reveal].is-visible {
+  opacity: 1;
+  filter: blur(0);
+  transform: perspective(1000px) rotateX(var(--rotate-x)) rotateY(var(--rotate-y))
+    translateY(0) scale(1);
+  transition:
+    transform 160ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    opacity 220ms ease,
+    filter 220ms ease;
+}
+
+@keyframes float-shape {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-15px) scale(1.04);
+  }
+}
+
+@keyframes orbit-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes card-float-a {
+  0%,
+  100% {
+    transform: rotateY(-17deg) rotateX(8deg) translate3d(0, 0, 70px);
+  }
+  50% {
+    transform: rotateY(-13deg) rotateX(5deg) translate3d(0, -10px, 84px);
+  }
+}
+
+@keyframes card-float-b {
+  0%,
+  100% {
+    transform: rotateY(14deg) rotateX(-7deg) translate3d(0, 0, 42px);
+  }
+  50% {
+    transform: rotateY(9deg) rotateX(-3deg) translate3d(0, -12px, 56px);
+  }
+}
+
+@keyframes card-float-c {
+  0%,
+  100% {
+    transform: rotateY(-10deg) rotateX(6deg) translate3d(0, 0, 26px);
+  }
+  50% {
+    transform: rotateY(-6deg) rotateX(2deg) translate3d(0, -8px, 40px);
+  }
+}
+
+@keyframes ambient-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(18px, -16px, 0);
+  }
+}
+
