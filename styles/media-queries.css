@@ -1,46 +1,120 @@
-@media (max-width: 1100px) {
+/* =========================================================
+   Responsive ladder (desktop-first, matching the base sheet)
+
+     >=1600   large desktop  — wider container
+     1200+    desktop        — 3-up services, 4-up team, 4-step process
+     1024     small desktop  — team drops to 2-up
+     <=1023   tablet         — burger nav, 2-up cards, stacked split layouts
+     <=899    tablet / large phone — centred hero, tighter chrome
+     <=700    phone          — single-column content
+     <=520    small phone    — everything stacks, tighter padding
+   ========================================================= */
+
+/* ---------- <= 1199px : desktop → small desktop ---------- */
+@media (max-width: 1199px) {
+  /* 4-up team cards get too narrow before the container shrinks */
   .cards-4 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .footer-inner {
+    grid-template-columns: 1.4fr 1fr 1fr;
+  }
+
+  .footer-col.footer-connect {
+    grid-column: 1 / -1;
+  }
+
+  .hero-layout {
+    gap: 1.5rem;
+  }
+}
+
+/* ---------- <= 1100px : hero stops being side-by-side ---------- */
+@media (max-width: 1100px) {
+  .hero {
+    min-height: auto;
   }
 
   .hero-layout {
     grid-template-columns: 1fr;
     min-height: auto;
-    padding: 4.5rem 0 3.2rem;
+    padding: 3rem 0 4rem;
   }
 
   .hero-visual {
-    height: 26rem;
+    height: 27rem;
+    /* `width: 100%` is required: an auto inline margin disables a grid item's
+       default stretch, and every child here is absolutely positioned, so the
+       box would otherwise collapse to zero width. */
+    width: 100%;
+    max-width: 34rem;
+    margin-inline: auto;
+  }
+
+  .scroll-hint {
+    display: none;
   }
 }
 
-@media (max-width: 920px) {
-  .cards-3,
+/* ---------- <= 1023px : tablet ----------
+   iPad landscape is exactly 1024, so it keeps the full desktop nav. */
+@media (max-width: 1023px) {
+  .nav-links,
+  .nav-cta {
+    display: none;
+  }
+
+  .nav-toggle {
+    display: inline-flex;
+  }
+
+  .mobile-drawer {
+    display: block;
+  }
+
+  /* 3-up becomes 2-up rather than collapsing straight to a single column —
+     this range was previously showing one card per row on every tablet. */
+  .cards-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .process-track {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.8rem 1.2rem;
+  }
+
+  .process-track::before {
+    display: none;
+  }
+
   .two-column,
-  .contact-grid,
-  .footer-inner,
-  .why-list {
+  .contact-grid {
     grid-template-columns: 1fr;
   }
 
-  .topbar {
-    flex-wrap: wrap;
-    justify-content: center;
+  .contact-aside {
+    margin-top: 0;
   }
 
-  .logo {
-    width: 100%;
-    justify-content: center;
+  .portfolio-head {
+    align-items: flex-start;
+  }
+}
+
+/* ---------- <= 899px : large phone / small tablet ---------- */
+@media (max-width: 899px) {
+  :root {
+    --nav-h: 68px;
   }
 
-  .nav-links {
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 0.85rem;
+  .footer-inner {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .hero {
-    min-height: auto;
+  .footer-brand-block {
+    grid-column: 1 / -1;
+    max-width: none;
   }
 
   .hero-content {
@@ -49,6 +123,7 @@
 
   .hero h1 {
     max-width: none;
+    margin-inline: auto;
   }
 
   .hero-sub {
@@ -60,64 +135,225 @@
     justify-content: center;
   }
 
+  .hero-company {
+    margin-inline: auto;
+  }
+
   .hero-visual {
-    height: 23rem;
+    height: 24rem;
   }
 
   .float-panel {
-    width: min(19rem, 80%);
+    width: min(18rem, 80%);
+  }
+
+  .cta-band h2 {
+    max-width: none;
+  }
+
+  .section-head {
+    max-width: none;
   }
 }
 
-@media (max-width: 620px) {
-  .section-container {
-    width: min(1140px, 94vw);
+/* ---------- <= 700px : phone ---------- */
+@media (max-width: 700px) {
+  .cards-3,
+  .why-list {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-form,
+  .contact-aside,
+  .about-card {
+    padding: 1.25rem;
+  }
+
+  .map-frame iframe {
+    min-height: 190px;
+  }
+
+  .hero-visual {
+    height: 21.5rem;
+  }
+
+  .panel-primary {
+    left: 0;
+  }
+
+  .panel-secondary {
+    right: 0;
+  }
+
+  .panel-tertiary {
+    left: 4%;
+  }
+
+  .portfolio-filter {
+    width: 100%;
+  }
+
+  .filter-btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}
+
+/* ---------- <= 520px : small phone ---------- */
+@media (max-width: 520px) {
+  .cards-4,
+  .cards-2,
+  .process-track,
+  .form-row,
+  .about-split,
+  .footer-inner {
+    grid-template-columns: 1fr;
   }
 
   .hero-cta {
     width: 100%;
   }
 
-  .hero-cta .btn {
+  .hero-cta .btn,
+  .cta-actions .btn {
     width: 100%;
   }
 
-  .cards-4 {
-    grid-template-columns: 1fr;
+  /* Two chips per row stay readable; one per row wastes the fold */
+  .stat-chip {
+    flex: 1 1 8.5rem;
+    min-width: 0;
   }
 
-  .hero-visual {
-    height: 21rem;
+  .card {
+    padding: 1.25rem 1.1rem;
   }
 
-  .panel-primary {
-    left: 2%;
+  .card-index {
+    font-size: 2.1rem;
   }
 
-  .panel-secondary {
-    right: 1%;
+  .footer-bottom {
+    justify-content: center;
+    text-align: center;
   }
 
-  .panel-tertiary {
-    left: 7%;
+  .cta-band {
+    padding: 2rem 1.25rem;
   }
 }
 
+/* ---------- Landscape phones ----------
+   100svh of hero on a 380px-tall viewport hides everything below the fold. */
+@media (max-height: 520px) and (orientation: landscape) {
+  .hero {
+    min-height: auto;
+  }
+
+  .hero-layout {
+    min-height: auto;
+    padding: 2.5rem 0 3rem;
+  }
+
+  .hero-visual {
+    height: 20rem;
+  }
+
+  .scroll-hint {
+    display: none;
+  }
+}
+
+/* ---------- Touch input: WCAG 2.5.8 target sizing ---------- */
+@media (pointer: coarse) {
+  .card-link {
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .filter-btn {
+    min-height: 44px;
+  }
+
+  .team-socials a,
+  .footer-socials a {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .footer-col nav a,
+  .contact-line a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 42px;
+  }
+
+  .logo {
+    min-height: 44px;
+  }
+
+  .to-top {
+    width: 3.1rem;
+    height: 3.1rem;
+  }
+}
+
+/* ---------- Coarse pointers: drop pointer-only effects ---------- */
+@media (hover: none), (pointer: coarse) {
+  .cursor-spotlight {
+    display: none;
+  }
+
+  .premium-card {
+    transform: none !important;
+  }
+
+  .premium-card::before {
+    display: none;
+  }
+
+  /* Hover-only affordances need a resting state on touch */
+  .premium-card::after {
+    opacity: 0.45;
+  }
+}
+
+/* ---------- Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
 
-  [data-reveal] {
-    opacity: 1;
-    filter: blur(0);
-    transform: none;
+  html {
+    scroll-behavior: auto;
   }
 
-  .premium-card {
-    transform: none;
+  [data-reveal],
+  [data-stagger] > *,
+  .word-reveal > span {
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+  }
+
+  .premium-card,
+  .hero-visual,
+  .magnetic {
+    transform: none !important;
+  }
+
+  .grain-layer,
+  .cursor-spotlight,
+  .scroll-hint {
+    display: none;
+  }
+
+  .tech-viewport {
+    animation: none;
   }
 }

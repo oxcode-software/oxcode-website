@@ -75,9 +75,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // The font variables must sit on :root — styles/variables.css composes
+  // --font-heading / --font-body there, and var() substitution only sees
+  // custom properties declared on the same element or an ancestor.
   return (
-    <html lang="en">
-      <body className={`${inter.variable} ${poppins.variable} antialiased`}>
+    <html lang="en" className={`${inter.variable} ${poppins.variable}`}>
+      <body className="antialiased">
         {children}
       </body>
     </html>

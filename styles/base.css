@@ -6,19 +6,35 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--nav-h) + 1.5rem);
+  -webkit-text-size-adjust: 100%;
+  /* Decorative glows, blurred reveal states and the marquee all bleed past
+     the fold. `clip` (not `hidden`) kills the sideways scroll without turning
+     the root into a scroll container, so the sticky header keeps working. */
+  overflow-x: clip;
 }
 
 body {
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-body);
-  line-height: 1.6;
-  overflow-x: hidden;
+  line-height: 1.65;
+  overflow-x: clip;
+  text-rendering: optimizeLegibility;
+}
+
+body.nav-locked {
+  overflow: hidden;
 }
 
 a {
   color: inherit;
   text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
 }
 
 img {
@@ -27,47 +43,173 @@ img {
   height: auto;
 }
 
+::selection {
+  background: rgba(var(--accent-rgb), 0.32);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-300);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ---- Custom scrollbar ---- */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ink-900);
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  border: 2px solid var(--ink-900);
+  background: linear-gradient(180deg, var(--accent), var(--accent-700));
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--accent-300), var(--accent));
+}
+
+/* ---- Page shell & ambience ---- */
 .site {
   position: relative;
   isolation: isolate;
   background:
-    radial-gradient(circle at 8% 10%, rgba(72, 177, 162, 0.22), transparent 44%),
-    radial-gradient(circle at 90% 0%, rgba(72, 177, 162, 0.14), transparent 36%),
-    linear-gradient(180deg, #1e1f24 0%, #1c1d22 52%, #191a1f 100%);
+    radial-gradient(circle at 8% 6%, rgba(var(--accent-rgb), 0.2), transparent 42%),
+    radial-gradient(circle at 92% 2%, rgba(var(--accent-rgb), 0.12), transparent 34%),
+    radial-gradient(circle at 50% 100%, rgba(var(--accent-rgb), 0.08), transparent 46%),
+    linear-gradient(180deg, #1e1f24 0%, #1c1d22 48%, #17181d 100%);
 }
 
+/* Animated aurora blobs, fixed behind content */
 .site::before,
 .site::after {
   content: "";
   position: fixed;
-  inset: auto auto auto auto;
   pointer-events: none;
-  z-index: -1;
+  z-index: -2;
+  border-radius: var(--r-pill);
 }
 
 .site::before {
-  top: -18rem;
-  left: -14rem;
-  width: 34rem;
-  height: 34rem;
-  border-radius: 999px;
-  background: radial-gradient(circle, rgba(72, 177, 162, 0.28), transparent 68%);
-  filter: blur(16px);
-  animation: ambient-drift 12s ease-in-out infinite;
+  top: -20rem;
+  left: -16rem;
+  width: 38rem;
+  height: 38rem;
+  background: radial-gradient(circle, rgba(var(--accent-rgb), 0.3), transparent 68%);
+  filter: blur(28px);
+  animation: ambient-drift 16s var(--ease-in-out) infinite;
 }
 
 .site::after {
-  right: -18rem;
-  bottom: -20rem;
+  right: -20rem;
+  bottom: -22rem;
+  width: 46rem;
+  height: 46rem;
+  background: radial-gradient(circle, rgba(var(--accent-rgb), 0.16), transparent 70%);
+  filter: blur(44px);
+  animation: ambient-drift 21s var(--ease-in-out) infinite reverse;
+}
+
+/* Fine film grain — reads as "printed", premium */
+.grain-layer {
+  position: fixed;
+  inset: -120%;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.045;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain-shift 8s steps(6) infinite;
+}
+
+/* Cursor-following spotlight (desktop, pointer: fine only) */
+.cursor-spotlight {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 0;
   width: 42rem;
   height: 42rem;
-  border-radius: 999px;
-  background: radial-gradient(circle, rgba(72, 177, 162, 0.16), transparent 70%);
-  filter: blur(30px);
-  animation: ambient-drift 14s ease-in-out infinite reverse;
+  margin: -21rem 0 0 -21rem;
+  pointer-events: none;
+  border-radius: var(--r-pill);
+  background: radial-gradient(
+    circle,
+    rgba(var(--accent-rgb), 0.13),
+    rgba(var(--accent-rgb), 0.05) 38%,
+    transparent 68%
+  );
+  opacity: 0;
+  transform: translate3d(var(--spot-x, 50vw), var(--spot-y, 50vh), 0);
+  transition: opacity 500ms ease;
+}
+
+.cursor-spotlight.is-active {
+  opacity: 1;
 }
 
 .section-container {
+  position: relative;
   margin: 0 auto;
-  width: min(1140px, 92vw);
-}
+  /* A gutter-based width keeps edge padding comfortable on small phones —
+     a vw-percentage width leaves only ~10px of breathing room at 320px. */
+  width: min(var(--container), 100% - var(--gutter) * 2);
+}
+
+/* ---- Typography primitives ---- */
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-heading);
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+.gradient-text {
+  background: linear-gradient(
+    100deg,
+    #ffffff 8%,
+    var(--accent-200) 42%,
+    var(--accent) 62%,
+    #ffffff 96%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: sheen-slide 7s linear infinite;
+}
+
+/* Highlighted tail words in a headline. A vertical ramp so every word reads
+   identically — a horizontal sheen would restart inside each word. */
+.headline-accent {
+  background: linear-gradient(180deg, var(--accent-100) 0%, var(--accent) 92%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

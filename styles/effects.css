@@ -1,0 +1,215 @@
+/* =========================================================
+   Reusable premium effect utilities
+   ========================================================= */
+
+/* Glass surface */
+.glass {
+  background: var(--surface-glass);
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow-soft), var(--shadow-inset);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+}
+
+/* 3D tilt + cursor glow card (used across every card in the site) */
+.premium-card {
+  --rotate-x: 0deg;
+  --rotate-y: 0deg;
+  --glow-x: 50%;
+  --glow-y: 50%;
+  position: relative;
+  transform-style: preserve-3d;
+  transform: perspective(1100px) rotateX(var(--rotate-x)) rotateY(var(--rotate-y));
+  transition:
+    transform 200ms var(--ease-out),
+    border-color var(--dur-base) ease,
+    box-shadow var(--dur-base) ease;
+  will-change: transform;
+}
+
+/* Cursor-tracked inner glow */
+.premium-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    380px circle at var(--glow-x) var(--glow-y),
+    rgba(var(--accent-rgb), 0.24),
+    transparent 46%
+  );
+  opacity: 0;
+  transition: opacity var(--dur-base) ease;
+  z-index: 0;
+}
+
+/* Gradient hairline that lights up on hover */
+.premium-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  padding: 1px;
+  background: linear-gradient(
+    140deg,
+    rgba(var(--accent-bright-rgb), 0.75),
+    rgba(var(--accent-rgb), 0.12) 42%,
+    transparent 62%,
+    rgba(var(--accent-bright-rgb), 0.4)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity var(--dur-base) ease;
+  z-index: 1;
+}
+
+.premium-card:hover {
+  border-color: rgba(var(--accent-rgb), 0.34);
+  box-shadow: var(--shadow-lift), 0 0 0 1px rgba(var(--accent-rgb), 0.12);
+}
+
+.premium-card:hover::before,
+.premium-card:hover::after {
+  opacity: 1;
+}
+
+.premium-card > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Lift on hover for non-tilt elements */
+.lift {
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) ease,
+    border-color var(--dur-base) ease;
+}
+
+.lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lift);
+}
+
+/* Light sweep across a card on hover.
+   Rendered as a real element so it can coexist with the ::before/::after
+   layers `.premium-card` already owns. */
+.card-sheen {
+  position: absolute;
+  top: -60%;
+  left: 0;
+  z-index: 3;
+  width: 40%;
+  height: 220%;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.14),
+    transparent
+  );
+  transform: translateX(-140%) skewX(-18deg);
+  opacity: 0;
+}
+
+.card:hover .card-sheen {
+  opacity: 1;
+  animation: shimmer-sweep 950ms var(--ease-out);
+}
+
+/* Animated conic border ring — for the highest-emphasis surfaces.
+   Owns ::before, so never combine it with .premium-card. */
+.aurora-ring {
+  position: relative;
+}
+
+.aurora-ring::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--ring-angle, 0deg),
+    transparent 0deg,
+    rgba(var(--accent-bright-rgb), 0.9) 60deg,
+    transparent 140deg,
+    transparent 220deg,
+    rgba(var(--accent-rgb), 0.65) 300deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: ring-rotate 6s linear infinite;
+  pointer-events: none;
+}
+
+@property --ring-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes ring-rotate {
+  to {
+    --ring-angle: 360deg;
+  }
+}
+
+/* Divider with a glowing center */
+.rule-glow {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(var(--accent-rgb), 0.5),
+    transparent
+  );
+}
+
+/* Small accent dot with a pulsing halo */
+.pulse-dot {
+  position: relative;
+  display: inline-flex;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--r-pill);
+  background: var(--accent-300);
+  box-shadow: 0 0 10px rgba(var(--accent-bright-rgb), 0.9);
+}
+
+.pulse-dot::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: rgba(var(--accent-bright-rgb), 0.55);
+  animation: pulse-ring 2.4s var(--ease-out) infinite;
+}
+
+/* Magnetic hover target (JS sets --mx/--my) */
+.magnetic {
+  transform: translate3d(var(--mx, 0px), var(--my, 0px), 0);
+  transition: transform 380ms var(--ease-out);
+}
+
+.magnetic.is-pulling {
+  transition: transform 90ms linear;
+}
