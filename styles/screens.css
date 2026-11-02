@@ -1,0 +1,73 @@
+/* Product and portfolio mockups. */
+
+.window {
+  background: #0f1719;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.12),
+    inset 0 1px 0 rgb(255 255 255 / 0.1),
+    0 50px 90px -30px rgb(0 0 0 / 0.9),
+    0 30px 120px -30px rgb(72 177 162 / 0.4);
+}
+
+.ui {
+  --ui-line: rgb(255 255 255 / 0.08);
+  --ui-note: #8c9a9a;
+  --ui-flag: #7ff0dd;
+  background: #0f1719;
+  color: #f2f6f5;
+  font-size: 14.5px;
+  line-height: 1.35;
+}
+.ui-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+  padding: 15px 18px;
+  background: #151f21;
+  border-bottom: 1px solid var(--ui-line);
+}
+.ui-head strong { font-size: 15px; font-weight: 600; }
+.ui-head span { color: var(--ui-note); font-size: 13px; }
+.ui table { width: 100%; border-collapse: collapse; }
+.ui th { padding: 11px 18px; color: var(--ui-note); font-size: 12.5px; font-weight: 500; text-align: left; white-space: nowrap; }
+.ui td { padding: 11px 18px; border-top: 1px solid var(--ui-line); font-variant-numeric: tabular-nums; }
+.ui td small { display: block; color: var(--ui-note); font-size: 12.5px; }
+.ui .num { text-align: right; white-space: nowrap; }
+.ui .flag { color: var(--ui-flag); font-weight: 600; }
+.ui-total { display: flex; justify-content: space-between; gap: 16px; padding: 14px 18px; background: #151f21; border-top: 1px solid var(--ui-line); font-weight: 600; font-variant-numeric: tabular-nums; }
+.ui-total b { color: var(--ui-flag); font-size: 17px; font-weight: 650; }
+.ui-finding { padding: 20px 18px 4px; font-family: var(--font-display); font-size: 22px; font-weight: 600; letter-spacing: -0.03em; }
+.ui-bars { display: grid; gap: 14px; padding: 16px 18px 24px; }
+.ui-bars li { display: grid; grid-template-columns: 1fr auto; gap: 7px 12px; font-variant-numeric: tabular-nums; }
+.ui-bars b { font-weight: 500; }
+.ui-bars i { grid-column: 1 / -1; display: block; height: 7px; border-radius: 99px; background: rgb(255 255 255 / 0.13); }
+.ui-bars .is-leader i { background: linear-gradient(90deg, #48b1a2, #7ff0dd); box-shadow: 0 0 16px rgb(127 240 221 / 0.5); }
+
+/* Devices */
+.browser { border-radius: 12px; overflow: hidden; box-shadow: 0 0 0 1px rgb(255 255 255 / 0.13), 0 40px 70px -24px rgb(0 0 0 / 0.9); }
+.browser-bar { display: flex; gap: 6px; padding: 11px 14px; background: #1a2527; }
+.browser-bar i { width: 9px; height: 9px; border-radius: 50%; background: rgb(255 255 255 / 0.22); }
+
+.phones { position: relative; height: 330px; transform-style: preserve-3d; }
+.phone { position: absolute; width: min(236px, 58%); padding-bottom: 12px; border-radius: 24px; overflow: hidden; box-shadow: 0 0 0 5px #05090a, 0 0 0 6px rgb(255 255 255 / 0.2), 0 34px 60px -18px rgb(0 0 0 / 0.95); }
+.phone-front { left: 6%; top: 10px; transform: translateZ(50px) rotateY(12deg) rotateZ(-2deg); }
+.phone-back { right: 6%; top: 44px; transform: translateZ(-10px) rotateY(-14deg) rotateZ(2deg); opacity: 0.92; }
+.phone .ui-head { padding: 20px 15px 10px; background: transparent; border-bottom: 0; }
+.phone-list li { display: grid; grid-template-columns: 42px 1fr; gap: 1px 6px; padding: 9px 15px; border-top: 1px solid var(--ui-line); font-size: 13px; }
+.phone-list b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.phone-list em { grid-column: 2; color: var(--ui-note); font-size: 12px; font-style: normal; }
+.phone-list em.flag { color: var(--ui-flag); font-weight: 600; }
+.phone-record div { padding: 9px 15px; border-top: 1px solid var(--ui-line); }
+.phone-record dt { color: var(--ui-note); font-size: 12px; }
+.phone-record dd { font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
+
+@media (max-width: 640px) {
+  .ui th, .ui td { padding-inline: 13px; }
+  .phone { width: 62%; }
+  .phone-front { left: 0; }
+  .phone-back { right: 0; }
+}
