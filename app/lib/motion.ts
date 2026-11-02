@@ -1,25 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
-
-export const prefersReducedMotion = () =>
-  typeof window !== "undefined" &&
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-const isFinePointer = () =>
-  typeof window !== "undefined" && window.matchMedia("(pointer: fine)").matches;
+import { useEffect, useState } from "react";
 
 /**
- * Reveals every `[data-reveal]` / `[data-stagger]` element as it scrolls into
- * view, applying an index-based delay so grids cascade instead of popping.
+ * Reveals every `[data-reveal]` element as it scrolls into view, with an
+ * index-based delay so the parts of a section arrive one after another.
  * Pass changing values in `deps` to re-scan after the DOM updates.
  */
 export function useScrollReveal(deps: unknown[] = []) {
   useEffect(() => {
-    if (prefersReducedMotion()) {
-      document
-        .querySelectorAll<HTMLElement>("[data-reveal], [data-stagger]")
-        .forEach((node) => node.classList.add("is-visible"));
+    const nodes = document.querySelectorAll<HTMLElement>("[data-reveal]");
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      nodes.forEach((node) => node.classList.add("is-visible"));
       return;
     }
 
@@ -31,35 +24,18 @@ export function useScrollReveal(deps: unknown[] = []) {
           observer.unobserve(entry.target);
         });
       },
-      { threshold: 0.12, rootMargin: "0px 0px -6% 0px" },
-    );
-
-    const nodes = document.querySelectorAll<HTMLElement>(
-      "[data-reveal], [data-stagger]",
+      { threshold: 0.08, rootMargin: "0px 0px -6% 0px" },
     );
 
     nodes.forEach((node) => {
       if (node.classList.contains("is-visible")) return;
-
-      if (node.hasAttribute("data-reveal")) {
-        const siblings = node.parentElement
-          ? Array.from(node.parentElement.children).filter((child) =>
-              child.hasAttribute("data-reveal"),
-            )
-          : [];
-        const position = Math.max(0, siblings.indexOf(node));
-        node.style.setProperty("--reveal-delay", `${Math.min(position, 7) * 85}ms`);
-      }
-
-      if (node.hasAttribute("data-stagger")) {
-        Array.from(node.children).forEach((child, index) => {
-          (child as HTMLElement).style.setProperty(
-            "--stagger-delay",
-            `${index * 70}ms`,
-          );
-        });
-      }
-
+      const siblings = node.parentElement
+        ? Array.from(node.parentElement.children).filter((child) =>
+            child.hasAttribute("data-reveal"),
+          )
+        : [];
+      const position = Math.max(0, siblings.indexOf(node));
+      node.style.setProperty("--reveal-delay", `${Math.min(position, 6) * 80}ms`);
       observer.observe(node);
     });
 
@@ -68,137 +44,99 @@ export function useScrollReveal(deps: unknown[] = []) {
   }, deps);
 }
 
-/** 3D pointer tilt + cursor-tracked glow for `.premium-card` surfaces. */
-export function useTilt(maxTilt = 7) {
-  const handleMove = useCallback(
-    (event: MouseEvent<HTMLElement>) => {
-      if (!isFinePointer() || prefersReducedMotion()) return;
-      const element = event.currentTarget;
-      const rect = element.getBoundingClientRect();
-      const px = (event.clientX - rect.left) / rect.width;
-      const py = (event.clientY - rect.top) / rect.height;
-
-      element.style.setProperty(
-        "--rotate-y",
-        `${((px * 2 - 1) * maxTilt).toFixed(2)}deg`,
-      );
-      element.style.setProperty(
-        "--rotate-x",
-        `${((1 - py * 2) * maxTilt).toFixed(2)}deg`,
-      );
-      element.style.setProperty("--glow-x", `${(px * 100).toFixed(1)}%`);
-      element.style.setProperty("--glow-y", `${(py * 100).toFixed(1)}%`);
-    },
-    [maxTilt],
-  );
-
-  const handleLeave = useCallback((event: MouseEvent<HTMLElement>) => {
-    const element = event.currentTarget;
-    element.style.setProperty("--rotate-x", "0deg");
-    element.style.setProperty("--rotate-y", "0deg");
-    element.style.setProperty("--glow-x", "50%");
-    element.style.setProperty("--glow-y", "50%");
-  }, []);
-
-  return { onMouseMove: handleMove, onMouseLeave: handleLeave };
-}
-
-/** Pulls an element slightly toward the cursor while hovered. */
-export function useMagnetic<T extends HTMLElement>(strength = 0.28) {
-  const ref = useRef<T | null>(null);
-
+/**
+ * Everything tied to scroll or pointer position: the progress bar, the hero copy,
+ * the services carousel, the process line and the card tilt.
+ */
+export function usePageMotion() {
   useEffect(() => {
-    const node = ref.current;
-    if (!node || !isFinePointer() || prefersReducedMotion()) return;
-
-    const onMove = (event: PointerEvent) => {
-      const rect = node.getBoundingClientRect();
-      const dx = event.clientX - (rect.left + rect.width / 2);
-      const dy = event.clientY - (rect.top + rect.height / 2);
-      node.classList.add("is-pulling");
-      node.style.setProperty("--mx", `${(dx * strength).toFixed(1)}px`);
-      node.style.setProperty("--my", `${(dy * strength).toFixed(1)}px`);
-    };
-
-    const onLeave = () => {
-      node.classList.remove("is-pulling");
-      node.style.setProperty("--mx", "0px");
-      node.style.setProperty("--my", "0px");
-    };
-
-    node.addEventListener("pointermove", onMove);
-    node.addEventListener("pointerleave", onLeave);
-    return () => {
-      node.removeEventListener("pointermove", onMove);
-      node.removeEventListener("pointerleave", onLeave);
-    };
-  }, [strength]);
-
-  return ref;
-}
-
-/** Normalised (-1..1) pointer offset from viewport centre, for parallax. */
-export function usePointerParallax<T extends HTMLElement>() {
-  const ref = useRef<T | null>(null);
-
-  useEffect(() => {
-    const node = ref.current;
-    if (!node || !isFinePointer() || prefersReducedMotion()) return;
-
+    const root = document.documentElement;
+    const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value));
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let frame = 0;
-    const onMove = (event: PointerEvent) => {
-      if (frame) return;
-      frame = window.requestAnimationFrame(() => {
-        frame = 0;
-        const x = (event.clientX / window.innerWidth) * 2 - 1;
-        const y = (event.clientY / window.innerHeight) * 2 - 1;
-        node.style.setProperty("--parallax-x", x.toFixed(3));
-        node.style.setProperty("--parallax-y", y.toFixed(3));
-      });
-    };
 
-    window.addEventListener("pointermove", onMove, { passive: true });
-    return () => {
-      window.removeEventListener("pointermove", onMove);
-      if (frame) window.cancelAnimationFrame(frame);
-    };
-  }, []);
-
-  return ref;
-}
-
-/** Page scroll ratio (0..1) plus a "past the fold" flag for the sticky nav. */
-export function useScrollState() {
-  const [progress, setProgress] = useState(0);
-  const [isStuck, setIsStuck] = useState(false);
-  const [isDeep, setIsDeep] = useState(false);
-
-  useEffect(() => {
-    let frame = 0;
     const update = () => {
       frame = 0;
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      const y = window.scrollY;
-      setProgress(max > 0 ? Math.min(1, y / max) : 0);
-      setIsStuck(y > 24);
-      setIsDeep(y > window.innerHeight * 0.9);
+      root.classList.toggle("is-scrolled", window.scrollY > 12);
+      const height = window.innerHeight;
+      const width = window.innerWidth;
+      const scrollable = root.scrollHeight - height;
+      root.style.setProperty("--scroll", (scrollable > 0 ? window.scrollY / scrollable : 0).toFixed(4));
+      if (reduced) return;
+
+      const hero = document.querySelector<HTMLElement>(".hero");
+      if (hero) {
+        const box = hero.getBoundingClientRect();
+        hero.style.setProperty("--p", clamp(-box.top / Math.max(box.height - height, 1)).toFixed(3));
+      }
+
+      const orbit = document.querySelector<HTMLElement>(".orbit");
+      const track = orbit?.querySelector<HTMLElement>(".orbit-track");
+      if (orbit && track) {
+        if (width > 900) {
+          const box = orbit.getBoundingClientRect();
+          const progress = clamp(-box.top / Math.max(box.height - height, 1));
+          const travel = Math.max(track.scrollWidth - width, 0);
+          track.style.transform = `translate3d(${(-progress * travel).toFixed(1)}px, 0, 0)`;
+          track.querySelectorAll<HTMLElement>(".orbit-card").forEach((card) => {
+            const rect = card.getBoundingClientRect();
+            const distance = (rect.left + rect.width / 2 - width / 2) / width;
+            card.style.transform = `rotateY(${clamp(distance * -46, -40, 40).toFixed(2)}deg) translateZ(${(-Math.abs(distance) * 170).toFixed(1)}px)`;
+            card.style.opacity = clamp(1.08 - Math.abs(distance) * 0.62, 0.3, 1).toFixed(3);
+          });
+        } else {
+          track.style.transform = "";
+          track.querySelectorAll<HTMLElement>(".orbit-card").forEach((card) => {
+            card.style.transform = "";
+            card.style.opacity = "";
+          });
+        }
+      }
+
+      const process = document.querySelector<HTMLElement>(".process");
+      if (process) {
+        const box = process.getBoundingClientRect();
+        process.style.setProperty("--progress", clamp((height * 0.8 - box.top) / (box.height + height * 0.25)).toFixed(3));
+      }
     };
 
     const onScroll = () => {
-      if (!frame) frame = window.requestAnimationFrame(update);
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+
+    let tilted: HTMLElement | null = null;
+    const resetTilt = () => {
+      if (!tilted) return;
+      tilted.style.setProperty("--rx", "0deg");
+      tilted.style.setProperty("--ry", "0deg");
+      tilted = null;
+    };
+    const onPointer = (event: PointerEvent) => {
+      if (reduced || event.pointerType === "touch") return;
+      const target = (event.target as Element | null)?.closest?.<HTMLElement>("[data-tilt]") ?? null;
+      if (target !== tilted) resetTilt();
+      if (!target) return;
+      tilted = target;
+      const box = target.getBoundingClientRect();
+      const x = (event.clientX - box.left) / box.width;
+      const y = (event.clientY - box.top) / box.height;
+      target.style.setProperty("--ry", `${((x - 0.5) * 11).toFixed(2)}deg`);
+      target.style.setProperty("--rx", `${((0.5 - y) * 11).toFixed(2)}deg`);
+      target.style.setProperty("--gx", `${(x * 100).toFixed(1)}%`);
+      target.style.setProperty("--gy", `${(y * 100).toFixed(1)}%`);
     };
 
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    window.addEventListener("pointermove", onPointer, { passive: true });
     return () => {
+      cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
-      if (frame) window.cancelAnimationFrame(frame);
+      window.removeEventListener("pointermove", onPointer);
     };
   }, []);
-
-  return { progress, isStuck, isDeep };
 }
 
 /** Tracks which section id is currently in the viewport. */
@@ -226,79 +164,4 @@ export function useActiveSection(ids: string[]) {
   }, [ids]);
 
   return active;
-}
-
-/** Moves the ambient spotlight layer with the pointer. */
-export function useCursorSpotlight<T extends HTMLElement>() {
-  const ref = useRef<T | null>(null);
-
-  useEffect(() => {
-    const node = ref.current;
-    if (!node || !isFinePointer() || prefersReducedMotion()) return;
-
-    let frame = 0;
-    const onMove = (event: PointerEvent) => {
-      if (frame) return;
-      frame = window.requestAnimationFrame(() => {
-        frame = 0;
-        node.classList.add("is-active");
-        node.style.setProperty("--spot-x", `${event.clientX}px`);
-        node.style.setProperty("--spot-y", `${event.clientY}px`);
-      });
-    };
-
-    window.addEventListener("pointermove", onMove, { passive: true });
-    return () => {
-      window.removeEventListener("pointermove", onMove);
-      if (frame) window.cancelAnimationFrame(frame);
-    };
-  }, []);
-
-  return ref;
-}
-
-/** Counts a numeric value up once its element scrolls into view. */
-export function useCountUp<T extends HTMLElement>(
-  target: number,
-  decimals = 0,
-  duration = 1500,
-) {
-  const ref = useRef<T | null>(null);
-  const [value, setValue] = useState(prefersReducedMotion() ? target : 0);
-
-  useEffect(() => {
-    const node = ref.current;
-    if (!node) return;
-
-    let frame = 0;
-
-    if (prefersReducedMotion()) {
-      frame = requestAnimationFrame(() => setValue(target));
-      return () => cancelAnimationFrame(frame);
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (!entries[0]?.isIntersecting) return;
-        observer.disconnect();
-        const start = performance.now();
-        const tick = (now: number) => {
-          const t = Math.min(1, (now - start) / duration);
-          const eased = 1 - Math.pow(1 - t, 4);
-          setValue(Number((target * eased).toFixed(decimals)));
-          if (t < 1) frame = requestAnimationFrame(tick);
-        };
-        frame = requestAnimationFrame(tick);
-      },
-      { threshold: 0.4 },
-    );
-
-    observer.observe(node);
-    return () => {
-      observer.disconnect();
-      if (frame) cancelAnimationFrame(frame);
-    };
-  }, [target, decimals, duration]);
-
-  return { ref, value };
 }
